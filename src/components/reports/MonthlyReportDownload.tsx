@@ -33,11 +33,8 @@ export function MonthlyReportDownload() {
 
       // Recalculate for personal report
       const totalMeals = meals.reduce((s: number, m: any) => s + m.mealCount, 0);
-      const totalBazarCost = bazarEntries.reduce((s: number, b: any) => s + b.amount, 0);
-      const mealRate = totalMeals > 0 ? Math.round((totalBazarCost / totalMeals) * 100) / 100 : 0;
       const totalGiven = transactions.filter((t: any) => t.type === "GIVE").reduce((s: number, t: any) => s + t.amount, 0);
       const totalTaken = transactions.filter((t: any) => t.type === "TAKE").reduce((s: number, t: any) => s + t.amount, 0);
-      const currentBalance = totalGiven - totalBazarCost - totalTaken;
 
       const doc = new jsPDF({ orientation: "landscape" });
       const pageW = doc.internal.pageSize.width;
@@ -57,16 +54,36 @@ export function MonthlyReportDownload() {
       };
 
       // ── Summary ──
-      const summaryBody = mode === "mine" ? [[
-        String(totalMeals), `BDT ${mealRate}`, `BDT ${totalBazarCost}`,
-        `BDT ${totalGiven}`, `BDT ${totalTaken}`, `BDT ${currentBalance}`,
-      ]] : [[
-        String(data.totalMeals), `BDT ${data.mealRate}`, `BDT ${data.totalBazarCost}`,
-        `BDT ${data.totalFundCollected}`, `BDT ${data.totalFundWithdrawn}`, `BDT ${data.currentBalance}`,
-      ]];
+      let summaryHead: string[];
+      let summaryBody: string[][];
+
+      if (mode === "mine") {
+        const myMealCost = Math.round(totalMeals * data.mealRate * 100) / 100;
+        const myBalance = Math.round((totalGiven - myMealCost - totalTaken) * 100) / 100;
+        const statusText = myBalance >= 0
+          ? `You get back BDT ${myBalance}`
+          : `You need to pay BDT ${Math.abs(myBalance)}`;
+
+        summaryHead = ["My Meals", "Global Meal Rate", "My Meal Cost", "I Gave", "I Took", "Status"];
+        summaryBody = [[
+          String(totalMeals),
+          `BDT ${data.mealRate}`,
+          `BDT ${myMealCost}`,
+          `BDT ${totalGiven}`,
+          `BDT ${totalTaken}`,
+          statusText,
+        ]];
+      } else {
+        summaryHead = ["Total Meals", "Meal Rate", "Total Bazar Cost"];
+        summaryBody = [[
+          String(data.totalMeals),
+          `BDT ${data.mealRate}`,
+          `BDT ${data.totalBazarCost}`,
+        ]];
+      }
 
       autoTable(doc, {
-        head: [["Total Meals", "Meal Rate", "Bazar Cost", "Fund In", "Fund Out", "Balance"]],
+        head: [summaryHead],
         body: summaryBody,
         startY: 18,
         theme: "grid",
@@ -75,6 +92,43 @@ export function MonthlyReportDownload() {
         margin: { left: margin, right: margin },
         didDrawPage: drawHeader,
       });
+
+      // ── Member Balances (full report only) ──
+      if (mode === "all") {
+        const memberBalances: string[][] = [];
+        const allMeals = data.meals as any[];
+        const allTransactions = data.transactions as any[];
+        const allMembers = data.members as any[];
+
+        for (const member of allMembers) {
+          // Hide superadmin from non-superadmin reports
+          if (member.role === "SUPERADMIN") continue;
+          const memberMeals = allMeals.filter((m: any) => m.memberId === member.id);
+          const memberTxs = allTransactions.filter((t: any) => t.memberId === member.id);
+          const mTotal = memberMeals.reduce((s: number, m: any) => s + m.mealCount, 0);
+          const mCost = Math.round(mTotal * data.mealRate * 100) / 100;
+          const mGiven = memberTxs.filter((t: any) => t.type === "GIVE").reduce((s: number, t: any) => s + t.amount, 0);
+          const mTaken = memberTxs.filter((t: any) => t.type === "TAKE").reduce((s: number, t: any) => s + t.amount, 0);
+
+          memberBalances.push([
+            member.name,
+            String(mTotal),
+            `BDT ${mCost}`,
+            `BDT ${mGiven}`,
+            `BDT ${mTaken}`,
+          ]);
+        }
+
+        autoTable(doc, {
+          head: [["Member", "Total Meals", "Meal Cost", "Given", "Taken"]],
+          body: memberBalances,
+          theme: "grid",
+          styles: { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: [34, 197, 94], textColor: 255 },
+          margin: tableMargin,
+          didDrawPage: drawHeader,
+        });
+      }
 
       // ── Meals ──
       const mealsByMember = new Map<string, { name: string; meals: Record<number, number> }>();
