@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+enum TransactionType {
+  GIVE
+  TAKE
+}
+
+enum CleaningType {
+  DINING
+  WASHROOM
+  KITCHEN
+  COMMON_AREA
+  OTHER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  tempPassword     String?   // hashed temporary password set by superadmin
+  passwordChangedAt DateTime? // when user last changed password
+  forcePasswordChange Boolean @default(false) // user must change password on next login
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  meals         Meal[]
+  bazarEntries  BazarEntry[]
+  transactions  Transaction[]
+  cleaningLogs  CleaningLog[]
+  notes         Note[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Meal {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  memberId    String
+  mealCount   Float    @default(0)
+  breakfast   Boolean  @default(false)
+  lunch       Boolean  @default(false)
+  dinner      Boolean  @default(false)
+  note        String?
+  updatedBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  member      User     @relation(fields: [memberId], references: [id])
+  auditLogs   AuditLog[]
+
+  @@unique([date, memberId])
+  @@map("meals")
+}
+
+model BazarEntry {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  amount      Float
+  description String?
+  memberId    String
+  updatedBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  member      User     @relation(fields: [memberId], references: [id])
+  auditLogs   AuditLog[]
+
+  @@map("bazar_entries")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  memberId    String
+  type        TransactionType
+  amount      Float
+  description String?
+  date        DateTime        @db.Date
+  updatedBy   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  member      User            @relation(fields: [memberId], references: [id])
+  auditLogs   AuditLog[]
+
+  @@map("transactions")
+}
+
+model CleaningLog {
+  id           String       @id @default(cuid())
+  date         DateTime     @db.Date
+  type         CleaningType
+  description  String?
+  imageUrls    String[]
+  memberId     String
+  updatedBy    String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  member       User         @relation(fields: [memberId], references: [id])
+  auditLogs    AuditLog[]
+
+  @@map("cleaning_logs")
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  isPinned    Boolean  @default(false)
+  memberId    String
+  updatedBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  member      User     @relation(fields: [memberId], references: [id])
+  auditLogs   AuditLog[]
+
+  @@map("notes")
+}
+
+model PageVisibility {
+  id        String  @id @default(cuid())
+  pageKey   String  @unique
+  isVisible Boolean @default(true)
+  updatedBy String
+  updatedAt DateTime @updatedAt
+
+  @@map("page_visibility")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String
+  action        String
+  entityType    String
+  entityId      String?
+  oldValue      Json?
+  newValue      Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  mealId        String?
+  bazarEntryId  String?
+  transactionId String?
+  cleaningLogId String?
+  noteId        String?
+
+  user          User     @relation(fields: [userId], references: [id])
+  meal          Meal?    @relation(fields: [mealId], references: [id])
+  bazarEntry    BazarEntry? @relation(fields: [bazarEntryId], references: [id])
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  cleaningLog   CleaningLog? @relation(fields: [cleaningLogId], references: [id])
+  note          Note?    @relation(fields: [noteId], references: [id])
+
+  @@map("audit_logs")
+}
