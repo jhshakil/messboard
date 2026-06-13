@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   const entry = await prisma.bazarEntry.create({
-    data: { ...body, updatedBy: session.user.id },
+    data: { ...body, date: new Date(body.date), updatedBy: session.user.id },
     include: { member: { select: { id: true, name: true } } },
   });
 

@@ -18,7 +18,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const updated = await prisma.meal.update({
     where: { id },
-    data: { ...body, updatedBy: session.user.id },
+    data: { ...body, ...(body.date ? { date: new Date(body.date) } : {}), updatedBy: session.user.id },
     include: { member: { select: { id: true, name: true, email: true } } },
   });
 

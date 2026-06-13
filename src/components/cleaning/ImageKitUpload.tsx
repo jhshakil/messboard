@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import api from "@/lib/axios";
 
 interface ImageKitUploadProps {
-  images: { url: string; name: string; uploading?: boolean; error?: string }[];
-  onChange: (images: { url: string; name: string }[]) => void;
+  images: { url: string; name: string; fileId?: string; uploading?: boolean; error?: string }[];
+  onChange: (images: { url: string; name: string; fileId?: string }[]) => void;
   maxImages?: number;
   maxSizeMB?: number;
 }
@@ -23,7 +23,7 @@ export function ImageKitUpload({
   const [previewing, setPreviewing] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const uploadFile = async (file: File): Promise<{ url: string; name: string }> => {
+  const uploadFile = async (file: File): Promise<{ url: string; name: string; fileId: string }> => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("folder", "cleaning");
@@ -31,7 +31,7 @@ export function ImageKitUpload({
     const res = await api.post("/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return { url: res.data.url, name: res.data.name };
+    return { url: res.data.url, name: res.data.name, fileId: res.data.fileId };
   };
 
   const handleFiles = useCallback(
@@ -63,10 +63,11 @@ export function ImageKitUpload({
       const currentImages = images.filter((i) => !i.error && i.url !== "") as {
         url: string;
         name: string;
+        fileId?: string;
       }[];
       onChange([...currentImages, ...newEntries]);
 
-      const results: { url: string; name: string }[] = [];
+      const results: { url: string; name: string; fileId?: string }[] = [];
       for (const [idx, file] of fileArr.entries()) {
         try {
           const result = await uploadFile(file);
@@ -88,12 +89,15 @@ export function ImageKitUpload({
     [images, maxImages, maxSizeMB, onChange]
   );
 
-  const removeImage = (index: number) => {
-    const cleaned = images.map((img) => ({
-      url: img.url,
-      name: img.name,
-    }));
-    const updated = cleaned.filter((_, i) => i !== index);
+  const removeImage = async (index: number) => {
+    const img = images[index];
+    // Delete from ImageKit
+    if (img.fileId) {
+      try { await api.delete(`/upload?fileId=${img.fileId}`); } catch {}
+    }
+    const updated = images
+      .filter((_, i) => i !== index)
+      .map((i) => ({ url: i.url, name: i.name, fileId: i.fileId }));
     onChange(updated);
   };
 

@@ -14,7 +14,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const updated = await prisma.cleaningLog.update({
     where: { id },
-    data: { ...body, updatedBy: session.user.id },
+    data: { ...body, ...(body.date ? { date: new Date(body.date) } : {}), updatedBy: session.user.id },
     include: { member: { select: { id: true, name: true } } },
   });
 
@@ -39,8 +39,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const existing = await prisma.cleaningLog.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-  if (session.user.role === "USER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  if (session.user.role === "USER" && existing.memberId !== session.user.id) {
+    return NextResponse.json({ message: "You can only delete your own cleaning logs" }, { status: 403 });
   }
 
   await prisma.cleaningLog.delete({ where: { id } });

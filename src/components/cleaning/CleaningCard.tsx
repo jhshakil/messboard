@@ -15,7 +15,8 @@ interface CleaningCardProps {
 export function CleaningCard({ log, onEdit, onDelete }: CleaningCardProps) {
   const { data: session } = useSession();
   const [preview, setPreview] = useState<string | null>(null);
-  const canDelete = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
+  const isOwner = session?.user?.id === log.memberId;
+  const canDelete = isOwner || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
 
   return (
     <div className="mms-card-hover">

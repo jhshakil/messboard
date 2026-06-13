@@ -22,7 +22,7 @@ export function CleaningAddForm({ onClose, editing }: CleaningAddFormProps) {
   const createCleaning = useCreateCleaning();
   const updateCleaning = useUpdateCleaning();
   const { data: members } = useMembersAll();
-  const [images, setImages] = useState<{ url: string; name: string }[]>(
+  const [images, setImages] = useState<{ url: string; name: string; fileId?: string }[]>(
     editing?.imageUrls?.map((u) => ({ url: u, name: u.split("/").pop() || "image" })) ?? []
   );
 

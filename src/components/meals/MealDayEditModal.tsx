@@ -86,16 +86,15 @@ export function MealDayEditModal({
               <label className="block text-sm font-medium text-[hsl(var(--mms-text-secondary))] mb-1.5">
                 Meal Count
               </label>
-              <select
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                max="5"
                 {...register("mealCount", { valueAsNumber: true })}
                 className="w-full px-4 py-2.5 rounded-[var(--mms-radius-md)] border border-[hsl(var(--mms-border-default))] bg-[hsl(var(--mms-bg-page))] text-sm"
-              >
-                <option value={0}>0 — Absent</option>
-                <option value={0.5}>0.5 — Partial</option>
-                <option value={1}>1 — Full</option>
-                <option value={1.5}>1.5</option>
-                <option value={2}>2</option>
-              </select>
+                placeholder="0, 0.5, 1, 1.5..."
+              />
             </div>
 
             <div className="flex gap-4">
@@ -103,7 +102,7 @@ export function MealDayEditModal({
                 <input type="checkbox" {...register("breakfast")} className="rounded" />
                 <span className="text-sm">Breakfast</span>
               </label>
-              <label className="flex items-center gap未有2">
+              <label className="flex items-center gap-2">
                 <input type="checkbox" {...register("lunch")} className="rounded" />
                 <span className="text-sm">Lunch</span>
               </label>

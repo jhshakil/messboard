@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const currentFileIdRef = useRef<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProfileFormValues>({
@@ -52,12 +53,19 @@ export default function ProfilePage() {
       formData.append("file", file);
       formData.append("folder", "avatars");
 
+      // Delete old avatar from ImageKit
+      if (currentFileIdRef.current) {
+        formData.append("deleteFileId", currentFileIdRef.current);
+      }
+
       const res = await api.post("/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       const url = res.data.url;
+      const fileId = res.data.fileId;
       setAvatarUrl(url);
+      currentFileIdRef.current = fileId;
 
       await api.patch("/user/profile", { image: url });
       await update({ ...session, user: { ...session?.user, image: url } });

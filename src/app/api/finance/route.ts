@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   const transaction = await prisma.transaction.create({
-    data: { ...body, updatedBy: session.user.id },
+    data: { ...body, date: new Date(body.date), updatedBy: session.user.id },
     include: { member: { select: { id: true, name: true } } },
   });
 
