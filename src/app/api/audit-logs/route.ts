@@ -16,11 +16,28 @@ export async function GET(req: Request) {
   const userId = searchParams.get("userId");
   const action = searchParams.get("action");
   const entityType = searchParams.get("entityType");
+  const search = searchParams.get("search");
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
 
   let where: any = {};
   if (userId) where.userId = userId;
   if (action) where.action = action;
   if (entityType) where.entityType = entityType;
+  if (search) {
+    where.user = { name: { contains: search, mode: "insensitive" } };
+  }
+  if (from || to) {
+    where.createdAt = {};
+    if (from) {
+      const [fy, fm, fd] = from.split("-").map(Number);
+      where.createdAt.gte = new Date(fy, fm - 1, fd);
+    }
+    if (to) {
+      const [ty, tm, td] = to.split("-").map(Number);
+      where.createdAt.lt = new Date(ty, tm - 1, td + 1);
+    }
+  }
 
   const [data, total] = await Promise.all([
     prisma.auditLog.findMany({
@@ -33,5 +50,5 @@ export async function GET(req: Request) {
     prisma.auditLog.count({ where }),
   ]);
 
-  return NextResponse.json({ data, total, page });
+  return NextResponse.json({ data, total, page, limit });
 }
