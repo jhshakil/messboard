@@ -6,7 +6,7 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { MonthYearPicker } from "@/components/shared/MonthYearPicker";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Utensils, ShoppingCart, Banknote, TrendingUp } from "lucide-react";
+import { Utensils, ShoppingCart, TrendingUp } from "lucide-react";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mms-page">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="mms-section-title">
             Welcome, {session?.user?.name}
@@ -31,7 +31,7 @@ export default function DashboardPage() {
         <MonthYearPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Meals</CardTitle>
@@ -61,18 +61,6 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">BDT {summary?.totalBazarCost ?? 0}</div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Fund Balance</CardTitle>
-            <Banknote className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${(summary?.currentBalance ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-              BDT {summary?.currentBalance ?? 0}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="mms-card">
@@ -81,32 +69,30 @@ export default function DashboardPage() {
           <LoadingSpinner />
         ) : (
           <div className="overflow-x-auto">
-            <table className="mms-table">
-              <thead>
-                <tr>
-                  <th>Member</th>
-                  <th>Total Meals</th>
-                  <th>Meal Cost</th>
-                  <th>Amount Given</th>
-                  <th>Amount Taken</th>
-                  <th>Net Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {balances?.map((b) => (
-                  <tr key={b.memberId}>
-                    <td className="font-medium">{b.memberName}</td>
-                    <td>{b.totalMeals}</td>
-                    <td>BDT {b.mealCost}</td>
-                    <td className="text-green-600">BDT {b.amountGiven}</td>
-                    <td className="text-red-600">BDT {b.amountTaken}</td>
-                    <td className={b.netBalance >= 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
-                      BDT {b.netBalance}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <table className="mms-table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Total Meals</th>
+                      <th>Meal Cost</th>
+                      <th>Bazar</th>
+                      <th>Net Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {balances?.map((b) => (
+                      <tr key={b.memberId}>
+                        <td className="font-medium">{b.memberName}</td>
+                        <td>{b.totalMeals}</td>
+                        <td>BDT {b.mealCost}</td>
+                        <td className="text-blue-600">BDT {b.bazarSpent}</td>
+                        <td className={b.netBalance >= 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+                          BDT {b.netBalance}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
           </div>
         )}
       </div>

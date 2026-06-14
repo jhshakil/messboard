@@ -46,7 +46,7 @@ export function MealMonthlyTable() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="mms-section-title">Meal Management</h1>
           <p className="mms-section-subtitle">Monthly meal tracking</p>
@@ -55,7 +55,7 @@ export function MealMonthlyTable() {
       </div>
 
       <div className="mms-card overflow-x-auto">
-        <table className="mms-table text-xs">
+        <table className="mms-table text-xs border-separate border-spacing-0">
           <thead>
             <tr>
               <th className="sticky left-0 bg-[hsl(var(--mms-bg-muted))] min-w-[120px]">Member</th>
