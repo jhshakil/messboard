@@ -26,6 +26,24 @@ export async function POST(req: Request) {
     include: { member: { select: { id: true, name: true } } },
   });
 
+  // Notify all other active users about the new note
+  const otherUsers = await prisma.user.findMany({
+    where: { id: { not: session.user.id }, isActive: true },
+    select: { id: true },
+  });
+  if (otherUsers.length > 0) {
+    await prisma.notification.createMany({
+      data: otherUsers.map((u) => ({
+        userId: u.id,
+        title: "New Note",
+        message: `${session.user.name} added a note: ${(body.title as string).slice(0, 60)}`,
+        type: "NOTE_CREATED",
+        relatedEntityType: "Note",
+        relatedEntityId: note.id,
+      })),
+    });
+  }
+
   await createAuditLog({
     userId: session.user.id,
     action: "CREATE_NOTE",

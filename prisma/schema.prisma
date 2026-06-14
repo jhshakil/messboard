@@ -48,6 +48,7 @@ model User {
   cleaningLogs  CleaningLog[]
   notes         Note[]
   auditLogs     AuditLog[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -214,4 +215,20 @@ model AuditLog {
   note          Note?    @relation(fields: [noteId], references: [id])
 
   @@map("audit_logs")
+}
+
+model Notification {
+  id                String   @id @default(cuid())
+  userId            String
+  title             String
+  message           String
+  type              String   // NOTE_CREATED, MEAL_REMINDER
+  isRead            Boolean  @default(false)
+  relatedEntityType String?  // "Note", "Meal"
+  relatedEntityId   String?
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }

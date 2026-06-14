@@ -63,8 +63,6 @@ export function MealDayEditModal({
 
   const isLoading = createMeal.isPending || updateMeal.isPending;
 
-  const isOwnMeal = session?.user?.id === memberId;
-  const canEdit = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN" || isOwnMeal;
   const canDelete = (session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && existingMeal;
 
   return (
@@ -78,10 +76,7 @@ export function MealDayEditModal({
           {memberName} — {date}
         </p>
 
-        {!canEdit ? (
-          <p className="text-sm text-red-500">You can only edit your own meals.</p>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-[hsl(var(--mms-text-secondary))] mb-1.5">
                 Meal Count
@@ -153,7 +148,6 @@ export function MealDayEditModal({
               </div>
             </div>
           </form>
-        )}
       </div>
     </div>
   );

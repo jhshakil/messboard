@@ -16,17 +16,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Credentials({
       credentials: { email: {}, password: {} },
       authorize: async (credentials) => {
-        let user;
-        try {
-          user = await prisma.user.findUnique({
-            where: { email: credentials.email as string },
-          });
-        } catch (e: any) {
-          console.error("[auth] prisma.user.findUnique failed:", e.message);
-          console.error("[auth] prisma error code:", e.code);
-          console.error("[auth] prisma meta:", JSON.stringify(e.meta));
-          return null;
-        }
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+        });
         if (!user) return null;
 
         // Check regular password first, then temp password

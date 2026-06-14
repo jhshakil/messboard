@@ -5,6 +5,7 @@ import { Menu, Sun, Moon, LogOut, User, ChevronDown, Key, Settings } from "lucid
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "@/components/layout/PageWrapper";
 import { useRouter } from "next/navigation";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -41,6 +42,8 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-3">
+        <NotificationBell />
+
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg hover:bg-[hsl(var(--mms-bg-muted))] text-[hsl(var(--mms-text-secondary))]"

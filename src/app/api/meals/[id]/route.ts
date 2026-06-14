@@ -12,10 +12,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const existing = await prisma.meal.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-  if (session.user.role === "USER" && existing.memberId !== session.user.id) {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-  }
-
   const updated = await prisma.meal.update({
     where: { id },
     data: { ...body, ...(body.date ? { date: new Date(body.date) } : {}), updatedBy: session.user.id },

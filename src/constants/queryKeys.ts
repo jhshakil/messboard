@@ -21,4 +21,5 @@ export const QUERY_KEYS = {
   members: { all: ["members"] as const },
   auditLogs: { all: ["audit-logs"] as const },
   pageVisibility: { all: ["page-visibility"] as const },
+  notifications: { unread: ["notifications", "unread"] as const },
 };
