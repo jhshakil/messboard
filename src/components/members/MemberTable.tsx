@@ -7,23 +7,45 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { RoleChangeModal } from "./RoleChangeModal";
 import { MemberResponse } from "@/types/member.types";
-import { Users, Shield } from "lucide-react";
+import { Users, Shield, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { formatDate } from "@/lib/utils";
 import api from "@/lib/axios";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function MemberTable() {
   const { data: members, isLoading } = useMembersAll();
   const toggleActiveMutation = useToggleMemberActive();
+  const qc = useQueryClient();
   const [roleModalMember, setRoleModalMember] = useState<MemberResponse | null>(null);
   const [toggleId, setToggleId] = useState<string | null>(null);
   const [toggleActive, setToggleActive] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteName, setDeleteName] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
+  const isSuperadmin = session?.user?.role === "SUPERADMIN";
 
   if (isLoading) return <LoadingSpinner />;
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/members/${deleteId}`);
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.members.all });
+      toast.success("Member and all their data deleted");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete member");
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
+    }
+  };
 
   const roleBadgeClass = (role: string) => {
     if (role === "SUPERADMIN") return "mms-role-superadmin";
@@ -86,6 +108,14 @@ export function MemberTable() {
                       >
                         {member.isActive ? "Deactivate" : "Activate"}
                       </button>
+                      {isSuperadmin && session.user.id !== member.id && (
+                        <button
+                          onClick={() => { setDeleteId(member.id); setDeleteName(member.name); }}
+                          className="text-xs px-2 py-1 border border-red-200 rounded hover:bg-red-50 text-red-600 transition-colors flex items-center gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" /> Delete
+                        </button>
+                      )}
                       {session?.user?.role === "SUPERADMIN" && (
                         <button
                           onClick={async () => {
@@ -126,11 +156,23 @@ export function MemberTable() {
       <ConfirmDialog
         open={!!toggleId}
         onOpenChange={() => setToggleId(null)}
-        title={toggleActive ? "Deactivate Member?" : "Activate Member?"}
-        description={`Are you sure you want to ${toggleActive ? "deactivate" : "activate"} this member?`}
+        title={toggleActive ? "Activate Member?" : "Deactivate Member?"}
+        description={toggleActive
+          ? "This member will be able to log in again."
+          : "This member will not be able to log in. Their data is preserved."}
         onConfirm={() => toggleId && toggleActiveMutation.mutateAsync({ id: toggleId, isActive: toggleActive })}
-        confirmLabel={toggleActive ? "Deactivate" : "Activate"}
-        variant={toggleActive ? "danger" : "default"}
+        confirmLabel={toggleActive ? "Activate" : "Deactivate"}
+        variant={toggleActive ? "default" : "danger"}
+      />
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        title="Delete Member?"
+        description={`This will permanently delete ${deleteName} and ALL their data (meals, bazar, transactions, cleaning logs, notes). This cannot be undone.`}
+        onConfirm={handleDelete}
+        confirmLabel={deleting ? "Deleting..." : "Delete Permanently"}
+        variant="danger"
       />
     </>
   );

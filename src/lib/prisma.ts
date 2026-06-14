@@ -8,12 +8,16 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Keep pool alive across hot reloads in dev
-const pool = globalForPrisma.pool ?? new Pool({
-  connectionString: process.env.DATABASE_URL!,
-  max: 1,
-  idleTimeoutMillis: 300000,   // 5 min — matches Neon's server-side idle timeout
-  connectionTimeoutMillis: 5000, // 5 sec — enough for Neon cold start wake-up
-});
+const pool = (globalForPrisma.pool ??
+  // family: 4 forces IPv4 to avoid Node 24+ Happy Eyeballs race with unreachable IPv6.
+  // pg types don't include family but it's passed through to net.connect().
+  new (Pool as any)({
+    connectionString: process.env.DATABASE_URL!,
+    max: 1,
+    family: 4,
+    idleTimeoutMillis: 300000,   // 5 min — matches Neon's server-side idle timeout
+    connectionTimeoutMillis: 5000, // 5 sec — enough for Neon cold start wake-up
+  })) as Pool;
 
 if (!globalForPrisma.pool) globalForPrisma.pool = pool;
 
