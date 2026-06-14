@@ -39,7 +39,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const existing = await prisma.bazarEntry.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-  if (session.user.role === "USER") {
+  if (session.user.role === "USER" && existing.memberId !== session.user.id) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 

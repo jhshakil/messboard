@@ -1,27 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { financeService } from "@/services/finance.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
 
-export const useFinanceMonthly = (year: number, month: number) =>
-  useQuery({
+export const useFinanceMonthly = (year: number, month: number) => {
+  const { status } = useSession();
+  return useQuery({
     queryKey: QUERY_KEYS.finance.monthly(year, month),
     queryFn: () => financeService.getMonthly(year, month),
+    enabled: status === "authenticated",
   });
+};
 
-export const useFinanceSummary = (year: number, month: number) =>
-  useQuery({
+export const useFinanceSummary = (year: number, month: number) => {
+  const { status } = useSession();
+  return useQuery({
     queryKey: [...QUERY_KEYS.finance.summary, year, month],
     queryFn: () => financeService.getSummary(year, month),
-    enabled: !!year && !!month,
+    enabled: !!year && !!month && status === "authenticated",
   });
+};
 
-export const useMembersBalance = (year: number, month: number) =>
-  useQuery({
+export const useMembersBalance = (year: number, month: number) => {
+  const { status } = useSession();
+  return useQuery({
     queryKey: [...QUERY_KEYS.finance.summary, "balance", year, month],
     queryFn: () => financeService.getMembersBalance(year, month),
-    enabled: !!year && !!month,
+    enabled: !!year && !!month && status === "authenticated",
   });
+};
 
 export const useCreateTransaction = () => {
   const qc = useQueryClient();

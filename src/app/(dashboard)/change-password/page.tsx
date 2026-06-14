@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import api from "@/lib/axios";
 
 const passwordSchema = z.object({
@@ -21,6 +22,7 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const { update } = useSession();
   const [loading, setLoading] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -37,6 +39,7 @@ export default function ChangePasswordPage() {
       });
       toast.success("Password changed successfully");
       reset();
+      await update({ forcePasswordChange: false });
       router.push("/");
     } catch (err: any) {
       toast.error(err.message || "Failed to change password");

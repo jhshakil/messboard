@@ -11,7 +11,8 @@ interface BazarCardProps {
 
 export function BazarCard({ entry, onEdit, onDelete }: BazarCardProps) {
   const { data: session } = useSession();
-  const canDelete = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
+  const isOwner = session?.user?.id === entry.memberId;
+  const canDelete = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN" || isOwner;
 
   return (
     <div className="mms-card-hover flex items-center justify-between gap-4">

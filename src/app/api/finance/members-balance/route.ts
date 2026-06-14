@@ -33,22 +33,25 @@ export async function GET(req: Request) {
 
   const balances = members.map((member) => {
     const memberMeals = meals.filter((m) => m.memberId === member.id);
+    const memberBazar = bazarEntries.filter((b) => b.memberId === member.id);
     const memberTransactions = transactions.filter((t) => t.memberId === member.id);
     const totalMemberMeals = memberMeals.reduce((sum, m) => sum + m.mealCount, 0);
     const mealCost = totalMemberMeals * mealRate;
+    const bazarSpent = memberBazar.reduce((sum, b) => sum + b.amount, 0);
     const amountGiven = memberTransactions
       .filter((t) => t.type === TransactionType.GIVE)
       .reduce((sum, t) => sum + t.amount, 0);
     const amountTaken = memberTransactions
       .filter((t) => t.type === TransactionType.TAKE)
       .reduce((sum, t) => sum + t.amount, 0);
-    const netBalance = amountGiven - mealCost - amountTaken;
+    const netBalance = amountGiven + bazarSpent - mealCost - amountTaken;
 
     return {
       memberId: member.id,
       memberName: member.name,
       totalMeals: totalMemberMeals,
       mealCost: Math.round(mealCost * 100) / 100,
+      bazarSpent: Math.round(bazarSpent * 100) / 100,
       amountGiven,
       amountTaken,
       netBalance: Math.round(netBalance * 100) / 100,

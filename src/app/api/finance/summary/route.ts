@@ -36,6 +36,6 @@ export async function GET(req: Request) {
     mealRate: Math.round(mealRate * 100) / 100,
     totalFundCollected: totalGiven,
     totalFundWithdrawn: totalTaken,
-    currentBalance: totalGiven - totalBazarCost - totalTaken,
+    currentBalance: totalGiven - totalTaken,
   });
 }

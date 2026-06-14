@@ -82,11 +82,7 @@ export function FinanceSummary() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="mms-stat-card">
-          <span className="mms-stat-label">Fund Collected</span>
-          <span className="mms-stat-value-green">BDT {summary?.totalFundCollected ?? 0}</span>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className="mms-stat-card">
           <span className="mms-stat-label">Bazar Cost</span>
           <span className="mms-stat-value-red">BDT {summary?.totalBazarCost ?? 0}</span>
@@ -94,12 +90,6 @@ export function FinanceSummary() {
         <div className="mms-stat-card">
           <span className="mms-stat-label">Meal Rate</span>
           <span className="mms-stat-value">BDT {summary?.mealRate ?? 0}</span>
-        </div>
-        <div className="mms-stat-card">
-          <span className="mms-stat-label">Current Balance</span>
-          <span className={(summary?.currentBalance ?? 0) >= 0 ? "mms-stat-value-green" : "mms-stat-value-red"}>
-            BDT {summary?.currentBalance ?? 0}
-          </span>
         </div>
       </div>
 

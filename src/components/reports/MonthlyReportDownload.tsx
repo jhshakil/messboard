@@ -33,6 +33,7 @@ export function MonthlyReportDownload() {
 
       // Recalculate for personal report
       const totalMeals = meals.reduce((s: number, m: any) => s + m.mealCount, 0);
+      const totalBazarSpent = bazarEntries.reduce((s: number, b: any) => s + b.amount, 0);
       const totalGiven = transactions.filter((t: any) => t.type === "GIVE").reduce((s: number, t: any) => s + t.amount, 0);
       const totalTaken = transactions.filter((t: any) => t.type === "TAKE").reduce((s: number, t: any) => s + t.amount, 0);
 
@@ -59,18 +60,17 @@ export function MonthlyReportDownload() {
 
       if (mode === "mine") {
         const myMealCost = Math.round(totalMeals * data.mealRate * 100) / 100;
-        const myBalance = Math.round((totalGiven - myMealCost - totalTaken) * 100) / 100;
+        const myBalance = Math.round((totalGiven + totalBazarSpent - myMealCost - totalTaken) * 100) / 100;
         const statusText = myBalance >= 0
           ? `You get back BDT ${myBalance}`
           : `You need to pay BDT ${Math.abs(myBalance)}`;
 
-        summaryHead = ["My Meals", "Global Meal Rate", "My Meal Cost", "I Gave", "I Took", "Status"];
+        summaryHead = ["My Meals", "Meal Rate", "Meal Cost", "My Bazar", "Status"];
         summaryBody = [[
           String(totalMeals),
           `BDT ${data.mealRate}`,
           `BDT ${myMealCost}`,
-          `BDT ${totalGiven}`,
-          `BDT ${totalTaken}`,
+          `BDT ${totalBazarSpent}`,
           statusText,
         ]];
       } else {
@@ -97,6 +97,7 @@ export function MonthlyReportDownload() {
       if (mode === "all") {
         const memberBalances: string[][] = [];
         const allMeals = data.meals as any[];
+        const allBazar = data.bazarEntries as any[];
         const allTransactions = data.transactions as any[];
         const allMembers = data.members as any[];
 
@@ -104,23 +105,26 @@ export function MonthlyReportDownload() {
           // Hide superadmin from non-superadmin reports
           if (member.role === "SUPERADMIN") continue;
           const memberMeals = allMeals.filter((m: any) => m.memberId === member.id);
+          const memberBazar = allBazar.filter((b: any) => b.memberId === member.id);
           const memberTxs = allTransactions.filter((t: any) => t.memberId === member.id);
           const mTotal = memberMeals.reduce((s: number, m: any) => s + m.mealCount, 0);
           const mCost = Math.round(mTotal * data.mealRate * 100) / 100;
+          const mBazar = memberBazar.reduce((s: number, b: any) => s + b.amount, 0);
           const mGiven = memberTxs.filter((t: any) => t.type === "GIVE").reduce((s: number, t: any) => s + t.amount, 0);
           const mTaken = memberTxs.filter((t: any) => t.type === "TAKE").reduce((s: number, t: any) => s + t.amount, 0);
+          const mBalance = Math.round((mGiven + mBazar - mCost - mTaken) * 100) / 100;
 
           memberBalances.push([
             member.name,
             String(mTotal),
             `BDT ${mCost}`,
-            `BDT ${mGiven}`,
-            `BDT ${mTaken}`,
+            `BDT ${mBazar}`,
+            `BDT ${mBalance}`,
           ]);
         }
 
         autoTable(doc, {
-          head: [["Member", "Total Meals", "Meal Cost", "Given", "Taken"]],
+          head: [["Member", "Meals", "Meal Cost", "Bazar", "Balance"]],
           body: memberBalances,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3 },

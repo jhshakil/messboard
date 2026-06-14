@@ -38,6 +38,9 @@ export function MemberTable() {
     try {
       await api.delete(`/members/${deleteId}`);
       qc.invalidateQueries({ queryKey: QUERY_KEYS.members.all });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.finance.all });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.meals.all });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.bazar.all });
       toast.success("Member and all their data deleted");
     } catch (err: any) {
       toast.error(err.message || "Failed to delete member");

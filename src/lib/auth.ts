@@ -59,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const s = session as any;
         if (s?.user?.name) token.name = s.user.name;
         if (s?.user?.image !== undefined) token.picture = s.user.image;
+        if (s?.forcePasswordChange !== undefined) token.forcePasswordChange = s.forcePasswordChange;
       }
 
       // Periodically refresh from DB if name is missing

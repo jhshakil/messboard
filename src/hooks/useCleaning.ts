@@ -1,13 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { cleaningService } from "@/services/cleaning.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
 
-export const useCleaningAll = (params?: { type?: string; year?: number; month?: number }) =>
-  useQuery({
+export const useCleaningAll = (params?: { type?: string; year?: number; month?: number }) => {
+  const { status } = useSession();
+  return useQuery({
     queryKey: [...QUERY_KEYS.cleaning.all, params],
     queryFn: () => cleaningService.getAll(params),
+    enabled: status === "authenticated",
   });
+};
 
 export const useCreateCleaning = () => {
   const qc = useQueryClient();

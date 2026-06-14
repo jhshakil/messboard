@@ -4,8 +4,10 @@ import { useState, useRef, useCallback } from "react";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { ShieldCheck, Search, ChevronLeft, ChevronRight, Globe } from "lucide-react";
+import { ShieldCheck, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { AuditLogDetail } from "./AuditLogDetail";
+import type { AuditLogResponse } from "@/types/audit.types";
 
 const ITEMS_PER_PAGE = 20;
 const actionOptions = [
@@ -52,6 +54,7 @@ export function AuditLogTable() {
   const [actionFilter, setActionFilter] = useState("");
   const [entityFilter, setEntityFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedLog, setSelectedLog] = useState<AuditLogResponse | null>(null);
   const [dateFrom, setDateFrom] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -198,7 +201,11 @@ export function AuditLogTable() {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id}>
+                  <tr
+                    key={log.id}
+                    onClick={() => setSelectedLog(log)}
+                    className="cursor-pointer hover:bg-[hsl(var(--mms-bg-muted))] transition-colors"
+                  >
                     <td className="text-xs whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
@@ -265,6 +272,11 @@ export function AuditLogTable() {
           </div>
         </>
       )}
+      <AuditLogDetail
+        log={selectedLog}
+        open={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+      />
     </>
   );
 }

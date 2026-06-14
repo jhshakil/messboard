@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { pageVisibilityService } from "@/services/pageVisibility.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
@@ -9,12 +10,15 @@ interface PageVisibilityItem {
   isVisible: boolean;
 }
 
-export const usePageVisibilityAll = () =>
-  useQuery<PageVisibilityItem[]>({
+export const usePageVisibilityAll = () => {
+  const { status } = useSession();
+  return useQuery<PageVisibilityItem[]>({
     queryKey: QUERY_KEYS.pageVisibility.all,
     queryFn: () => pageVisibilityService.getAll(),
     staleTime: 1000 * 60 * 5,
+    enabled: status === "authenticated",
   });
+};
 
 export const useTogglePageVisibility = () => {
   const qc = useQueryClient();

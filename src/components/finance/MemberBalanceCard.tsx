@@ -12,8 +12,15 @@ export function MemberBalanceCard({ balance }: MemberBalanceCardProps) {
     <div className="mms-card-hover flex items-center justify-between">
       <div>
         <p className="font-medium text-[hsl(var(--mms-text-primary))]">{balance.memberName}</p>
-        <p className="text-sm text-[hsl(var(--mms-text-muted))]">
-          {balance.totalMeals} meals × BDT {balance.mealCost > 0 ? (balance.mealCost / (balance.totalMeals || 1)).toFixed(2) : "0"} = BDT {balance.mealCost}
+        <p className="text-xs text-[hsl(var(--mms-text-muted))]">
+          {balance.totalMeals > 0 && (
+            <span>{balance.totalMeals} meals × BDT {(balance.mealCost / balance.totalMeals).toFixed(2)} = BDT {balance.mealCost}</span>
+          )}
+          {balance.totalMeals > 0 && balance.bazarSpent > 0 && <span> | </span>}
+          {balance.bazarSpent > 0 && (
+            <span className="text-green-600">Bazar spent BDT {balance.bazarSpent}</span>
+          )}
+          {balance.totalMeals === 0 && balance.bazarSpent === 0 && <span>No activity</span>}
         </p>
       </div>
       <div className="text-right">

@@ -45,6 +45,7 @@ export interface MemberBalance {
   memberName: string;
   totalMeals: number;
   mealCost: number;
+  bazarSpent: number;
   amountGiven: number;
   amountTaken: number;
   netBalance: number;

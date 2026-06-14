@@ -1,13 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { notesService } from "@/services/notes.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";
 
-export const useNotesAll = () =>
-  useQuery({
+export const useNotesAll = () => {
+  const { status } = useSession();
+  return useQuery({
     queryKey: QUERY_KEYS.notes.all,
     queryFn: () => notesService.getAll(),
+    enabled: status === "authenticated",
   });
+};
 
 export const useCreateNote = () => {
   const qc = useQueryClient();
